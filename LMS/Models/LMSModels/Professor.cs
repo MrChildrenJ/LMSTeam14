@@ -11,7 +11,7 @@ public partial class Professor
 
     public string LName { get; set; } = null!;
 
-    public DateOnly Dob { get; set; }
+    public DateTime Dob { get; set; }
 
     public string WorksIn { get; set; } = null!;
 

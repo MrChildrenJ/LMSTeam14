@@ -11,5 +11,5 @@ public partial class Administrator
 
     public string LName { get; set; } = null!;
 
-    public DateOnly Dob { get; set; }
+    public DateTime Dob { get; set; }
 }

@@ -37,7 +37,16 @@ public partial class LMSContext : DbContext
     public virtual DbSet<Submission> Submissions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseMySql("name=LMS:LMSConnectionString", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.11.8-mariadb"));
+    {
+        // Original code - always configures MySQL
+        // => optionsBuilder.UseMySql("name=LMS:LMSConnectionString", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.11.8-mariadb"));
+        
+        // Fixed version - only configure MySQL if no options are already configured (allows for testing)
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseMySql("name=LMS:LMSConnectionString", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.11.8-mariadb"));
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

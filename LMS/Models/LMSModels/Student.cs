@@ -11,7 +11,7 @@ public partial class Student
 
     public string LName { get; set; } = null!;
 
-    public DateOnly Dob { get; set; }
+    public DateTime Dob { get; set; }
 
     public string Major { get; set; } = null!;
 
