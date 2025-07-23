@@ -17,3 +17,29 @@ bld/
 # NuGet packages
 *.nupkg
 
+# Build results
+bin/
+obj/
+
+# NuGet
+*.nupkg
+.nuget/
+packages/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build artifacts
+*.log
+*.tmp
