@@ -32,13 +32,11 @@ namespace LMS.Controllers
             var departments = db.Departments
                 .Select(d => new {
                     name = d.Name,
-                    subject = d.SubjectAbbr
+                    subject = d.Subject
                 })
                 .ToList();
             return Json(departments);
         }
-
-
 
         /// <summary>
         /// Returns a JSON array representing the course catalog.
@@ -55,14 +53,12 @@ namespace LMS.Controllers
         {
             var catalog = db.Departments
                 .Select(dept => new {
-                    subject = dept.SubjectAbbr,
+                    subject = dept.Subject,
                     dname = dept.Name,
-                    courses = db.Courses
-                        .Where(c => c.SubjectAbbr == dept.SubjectAbbr)
-                        .Select(c => new {
-                            number = c.Number,
-                            cname = c.Name
-                        }).ToList()
+                    courses = dept.Courses.Select(c => new {
+                        number = c.Number,
+                        cname = c.Name
+                    }).ToList()
                 })
                 .ToList();
             return Json(catalog);
@@ -85,17 +81,17 @@ namespace LMS.Controllers
         public IActionResult GetClassOfferings(string subject, int number)
         {
             var result = new List<object>();
-            var classes = db.Classes.Where(c => c.CourseSubject == subject && c.CourseNumber == number);
+            var classes = db.Classes.Where(c => c.ListingNavigation.DepartmentNavigation.Subject == subject && c.ListingNavigation.Number == number);
             foreach (var c in classes)
             {
                 result.Add(new {
-                    season = c.SemesterSeason,
-                    year = c.SemesterYear,
+                    season = c.Season,
+                    year = c.Year,
                     location = c.Location,
-                    start = c.StartTime.ToString(),
-                    end = c.EndTime.ToString(),
-                    fname = c.Professor.FName,
-                    lname = c.Professor.LName
+                    start = c.StartTime.ToString("HH:mm:ss"),
+                    end = c.EndTime.ToString("HH:mm:ss"),
+                    fname = c.TaughtByNavigation != null ? c.TaughtByNavigation.FName : "",
+                    lname = c.TaughtByNavigation != null ? c.TaughtByNavigation.LName : ""
                 });
             }
             return Json(result);
@@ -115,17 +111,17 @@ namespace LMS.Controllers
         /// <returns>The assignment contents</returns>
         public IActionResult GetAssignmentContents(string subject, int num, string season, int year, string category, string asgname)
         {
-            var assignments = db.Assignments.ToList();
-            foreach (var a in assignments)
+            foreach (var a in db.Assignments)
             {
-                if (a.Category.Class.CourseSubject == subject && a.Category.Class.CourseNumber == num && a.Category.Class.SemesterSeason == season && a.Category.Class.SemesterYear == year && a.Category.Name == category && a.Name == asgname)
+                var cat = a.CategoryNavigation;
+                var cls = cat.InClassNavigation;
+                if (cls.ListingNavigation.DepartmentNavigation.Subject == subject && cls.ListingNavigation.Number == num && cls.Season == season && cls.Year == year && cat.Name == category && a.Name == asgname)
                 {
                     return Content(a.Contents ?? "");
                 }
             }
             return Content("");
         }
-
 
         /// <summary>
         /// This method does NOT return JSON. It returns plain text (containing html).
@@ -143,12 +139,14 @@ namespace LMS.Controllers
         /// <returns>The submission text</returns>
         public IActionResult GetSubmissionText(string subject, int num, string season, int year, string category, string asgname, string uid)
         {
-            var submissions = db.Submissions.ToList();
-            foreach (var s in submissions)
+            foreach (var s in db.Submissions)
             {
-                if (s.StudentId == uid && s.Assignment.Category.Class.CourseSubject == subject && s.Assignment.Category.Class.CourseNumber == num && s.Assignment.Category.Class.SemesterSeason == season && s.Assignment.Category.Class.SemesterYear == year && s.Assignment.Category.Name == category && s.Assignment.Name == asgname)
+                var a = s.AssignmentNavigation;
+                var cat = a.CategoryNavigation;
+                var cls = cat.InClassNavigation;
+                if (s.Student == uid && cls.ListingNavigation.DepartmentNavigation.Subject == subject && cls.ListingNavigation.Number == num && cls.Season == season && cls.Year == year && cat.Name == category && a.Name == asgname)
                 {
-                    return Content(s.Contents ?? "");
+                    return Content(s.SubmissionContents ?? "");
                 }
             }
             return Content("");
@@ -179,7 +177,7 @@ namespace LMS.Controllers
                     fname = student.FName,
                     lname = student.LName,
                     uid = student.UId,
-                    department = student.Department.Name
+                    department = student.MajorNavigation.Name
                 });
             }
             var professor = db.Professors.FirstOrDefault(p => p.UId == uid);
@@ -189,7 +187,7 @@ namespace LMS.Controllers
                     fname = professor.FName,
                     lname = professor.LName,
                     uid = professor.UId,
-                    department = professor.Department.Name
+                    department = professor.WorksInNavigation.Name
                 });
             }
             var admin = db.Administrators.FirstOrDefault(a => a.UId == uid);
