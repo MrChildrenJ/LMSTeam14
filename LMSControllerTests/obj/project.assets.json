@@ -7632,19 +7632,19 @@
     ]
   },
   "packageFolders": {
-    "/Users/qiugaofei/.nuget/packages/": {}
+    "/Users/jjhuang/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/qiugaofei/cs6016/LMSHandout/LMSControllerTests/LMSControllerTests.csproj",
+      "projectUniqueName": "/Users/jjhuang/Github/LMS_Project/LMSControllerTests/LMSControllerTests.csproj",
       "projectName": "LMSControllerTests",
-      "projectPath": "/Users/qiugaofei/cs6016/LMSHandout/LMSControllerTests/LMSControllerTests.csproj",
-      "packagesPath": "/Users/qiugaofei/.nuget/packages/",
-      "outputPath": "/Users/qiugaofei/cs6016/LMSHandout/LMSControllerTests/obj/",
+      "projectPath": "/Users/jjhuang/Github/LMS_Project/LMSControllerTests/LMSControllerTests.csproj",
+      "packagesPath": "/Users/jjhuang/.nuget/packages/",
+      "outputPath": "/Users/jjhuang/Github/LMS_Project/LMSControllerTests/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/qiugaofei/.nuget/NuGet/NuGet.Config"
+        "/Users/jjhuang/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
@@ -7657,8 +7657,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "/Users/qiugaofei/cs6016/LMSHandout/LMS/LMS.csproj": {
-              "projectPath": "/Users/qiugaofei/cs6016/LMSHandout/LMS/LMS.csproj"
+            "/Users/jjhuang/Github/LMS_Project/LMS/LMS.csproj": {
+              "projectPath": "/Users/jjhuang/Github/LMS_Project/LMS/LMS.csproj"
             }
           }
         }
@@ -7673,7 +7673,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net9.0": {
@@ -7720,7 +7720,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.203/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

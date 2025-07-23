@@ -6753,19 +6753,19 @@
     ]
   },
   "packageFolders": {
-    "/Users/qiugaofei/.nuget/packages/": {}
+    "/Users/jjhuang/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/qiugaofei/cs6016/LMSHandout/LMS/LMS.csproj",
+      "projectUniqueName": "/Users/jjhuang/Github/LMS_Project/LMS/LMS.csproj",
       "projectName": "LMS",
-      "projectPath": "/Users/qiugaofei/cs6016/LMSHandout/LMS/LMS.csproj",
-      "packagesPath": "/Users/qiugaofei/.nuget/packages/",
-      "outputPath": "/Users/qiugaofei/cs6016/LMSHandout/LMS/obj/",
+      "projectPath": "/Users/jjhuang/Github/LMS_Project/LMS/LMS.csproj",
+      "packagesPath": "/Users/jjhuang/.nuget/packages/",
+      "outputPath": "/Users/jjhuang/Github/LMS_Project/LMS/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/qiugaofei/.nuget/NuGet/NuGet.Config"
+        "/Users/jjhuang/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
@@ -6790,7 +6790,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net9.0": {
@@ -6846,7 +6846,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.203/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

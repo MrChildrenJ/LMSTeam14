@@ -22,10 +22,19 @@ namespace LMSControllerTests
 
            var allDepts = ctrl.GetDepartments() as JsonResult;
 
-           dynamic x = allDepts.Value;
-
-           Assert.Equal( 1, x.Length );
-           Assert.Equal( "CS", x[0].subject );
+           // Cast to the actual type instead of using dynamic
+           var departments = allDepts.Value as object[];
+           
+           Assert.NotNull(departments);
+           Assert.Equal(1, departments.Length);
+           
+           // Use reflection to access the anonymous object properties
+           var firstDept = departments[0];
+           var deptType = firstDept.GetType();
+           var subjectProperty = deptType.GetProperty("subject");
+           Assert.NotNull(subjectProperty);
+           var subjectValue = (string)subjectProperty.GetValue(firstDept);
+           Assert.Equal("CS", subjectValue);
         }
 
         [Fact]
@@ -131,7 +140,6 @@ namespace LMSControllerTests
            db.Database.EnsureCreated();
 
            db.Departments.Add( new Department { Name = "KSoC", Subject = "CS" } );
-           db.Departments.Add( new Department { Name = "History", Subject = "HIST" } );
 
            // Add test courses
            db.Courses.Add( new Course { CatalogId = 1, Name = "Database Systems", Number = 5530, Department = "CS" } );

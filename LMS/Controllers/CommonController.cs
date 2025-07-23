@@ -32,9 +32,9 @@ namespace LMS.Controllers
             var departments = db.Departments
                 .Select(d => new {
                     name = d.Name,
-                    subject = d.SubjectAbbr
+                    subject = d.Subject
                 })
-                .ToList();
+                .ToArray();
             return Json(departments);
         }
 
@@ -55,16 +55,16 @@ namespace LMS.Controllers
         {
             var catalog = db.Departments
                 .Select(dept => new {
-                    subject = dept.SubjectAbbr,
+                    subject = dept.Subject,
                     dname = dept.Name,
                     courses = db.Courses
-                        .Where(c => c.SubjectAbbr == dept.SubjectAbbr)
+                        .Where(c => c.Department == dept.Subject)
                         .Select(c => new {
                             number = c.Number,
                             cname = c.Name
                         }).ToList()
                 })
-                .ToList();
+                .ToArray();
             return Json(catalog);
         }
 
@@ -84,21 +84,23 @@ namespace LMS.Controllers
         /// <returns>The JSON array</returns>
         public IActionResult GetClassOfferings(string subject, int number)
         {
-            var result = new List<object>();
-            var classes = db.Classes.Where(c => c.CourseSubject == subject && c.CourseNumber == number);
-            foreach (var c in classes)
-            {
-                result.Add(new {
-                    season = c.SemesterSeason,
-                    year = c.SemesterYear,
-                    location = c.Location,
-                    start = c.StartTime.ToString(),
-                    end = c.EndTime.ToString(),
-                    fname = c.Professor.FName,
-                    lname = c.Professor.LName
-                });
-            }
-            return Json(result);
+            uint courseNumber = (uint)number;
+            
+            var query = from c in db.Classes
+                        where c.ListingNavigation.Department == subject &&
+                              c.ListingNavigation.Number == courseNumber
+                        select new
+                        {
+                            season = c.Season,
+                            year = c.Year,
+                            location = c.Location,
+                            start = c.StartTime.ToString(),
+                            end = c.EndTime.ToString(),
+                            fname = c.TaughtByNavigation != null ? c.TaughtByNavigation.FName : "",
+                            lname = c.TaughtByNavigation != null ? c.TaughtByNavigation.LName : ""
+                        };
+            
+            return Json(query.ToArray());
         }
 
         /// <summary>
@@ -115,15 +117,21 @@ namespace LMS.Controllers
         /// <returns>The assignment contents</returns>
         public IActionResult GetAssignmentContents(string subject, int num, string season, int year, string category, string asgname)
         {
-            var assignments = db.Assignments.ToList();
-            foreach (var a in assignments)
-            {
-                if (a.Category.Class.CourseSubject == subject && a.Category.Class.CourseNumber == num && a.Category.Class.SemesterSeason == season && a.Category.Class.SemesterYear == year && a.Category.Name == category && a.Name == asgname)
-                {
-                    return Content(a.Contents ?? "");
-                }
-            }
-            return Content("");
+            uint courseNumber = (uint)num;
+            uint classYear = (uint)year;
+            
+            var assignment = (from a in db.Assignments
+                            join ac in db.AssignmentCategories on a.Category equals ac.CategoryId
+                            join c in db.Classes on ac.InClass equals c.ClassId
+                            where c.ListingNavigation.Department == subject &&
+                                  c.ListingNavigation.Number == courseNumber &&
+                                  c.Season == season &&
+                                  c.Year == classYear &&
+                                  ac.Name == category &&
+                                  a.Name == asgname
+                            select a).FirstOrDefault();
+            
+            return Content(assignment?.Contents ?? "");
         }
 
 
@@ -143,15 +151,23 @@ namespace LMS.Controllers
         /// <returns>The submission text</returns>
         public IActionResult GetSubmissionText(string subject, int num, string season, int year, string category, string asgname, string uid)
         {
-            var submissions = db.Submissions.ToList();
-            foreach (var s in submissions)
-            {
-                if (s.StudentId == uid && s.Assignment.Category.Class.CourseSubject == subject && s.Assignment.Category.Class.CourseNumber == num && s.Assignment.Category.Class.SemesterSeason == season && s.Assignment.Category.Class.SemesterYear == year && s.Assignment.Category.Name == category && s.Assignment.Name == asgname)
-                {
-                    return Content(s.Contents ?? "");
-                }
-            }
-            return Content("");
+            uint courseNumber = (uint)num;
+            uint classYear = (uint)year;
+            
+            var submission = (from s in db.Submissions
+                            join a in db.Assignments on s.Assignment equals a.AssignmentId
+                            join ac in db.AssignmentCategories on a.Category equals ac.CategoryId
+                            join c in db.Classes on ac.InClass equals c.ClassId
+                            where s.Student == uid &&
+                                  c.ListingNavigation.Department == subject &&
+                                  c.ListingNavigation.Number == courseNumber &&
+                                  c.Season == season &&
+                                  c.Year == classYear &&
+                                  ac.Name == category &&
+                                  a.Name == asgname
+                            select s).FirstOrDefault();
+            
+            return Content(submission?.SubmissionContents ?? "");
         }
 
         /// <summary>
@@ -179,7 +195,7 @@ namespace LMS.Controllers
                     fname = student.FName,
                     lname = student.LName,
                     uid = student.UId,
-                    department = student.Department.Name
+                    department = student.MajorNavigation.Name
                 });
             }
             var professor = db.Professors.FirstOrDefault(p => p.UId == uid);
@@ -189,7 +205,7 @@ namespace LMS.Controllers
                     fname = professor.FName,
                     lname = professor.LName,
                     uid = professor.UId,
-                    department = professor.Department.Name
+                    department = professor.WorksInNavigation.Name
                 });
             }
             var admin = db.Administrators.FirstOrDefault(a => a.UId == uid);
