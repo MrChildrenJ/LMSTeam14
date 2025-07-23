@@ -712,3 +712,4 @@
 /Users/jjhuang/Github/LMS_Project/LMS/obj/Debug/net9.0/LMS.pdb
 /Users/jjhuang/Github/LMS_Project/LMS/obj/Debug/net9.0/LMS.genruntimeconfig.cache
 /Users/jjhuang/Github/LMS_Project/LMS/obj/Debug/net9.0/ref/LMS.dll
+/Users/qiugaofei/cs6016/LMSHandout/LMS/obj/Debug/net9.0/LMS.sourcelink.json
