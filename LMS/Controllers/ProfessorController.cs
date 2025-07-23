@@ -117,7 +117,26 @@ namespace LMS_CustomIdentity.Controllers
         /// <returns>The JSON array</returns>
         public IActionResult GetStudentsInClass(string subject, int num, string season, int year)
         {
-            return Json(null);
+            uint courseNumber = (uint)num;
+            uint classYear = (uint)year;
+            
+            var query = from cl in db.Classes
+                        join e in db.Enrolleds on cl.ClassId equals e.Class
+                        join s in db.Students on e.Student equals s.UId
+                        where cl.ListingNavigation.Department == subject &&
+                              cl.ListingNavigation.Number == courseNumber &&
+                              cl.Season == season &&
+                              cl.Year == classYear
+                        select new
+                        {
+                            fname = s.FName,
+                            lname = s.LName,
+                            uid = s.UId,
+                            dob = s.Dob,
+                            grade = e.Grade
+                        };
+            
+            return Json(query.ToArray());
         }
 
 
@@ -140,7 +159,25 @@ namespace LMS_CustomIdentity.Controllers
         /// <returns>The JSON array</returns>
         public IActionResult GetAssignmentsInCategory(string subject, int num, string season, int year, string category)
         {
-            return Json(null);
+            uint courseNumber = (uint)num;
+            uint classYear = (uint)year;
+
+            var query = from a in db.Assignments
+                        join ac in db.AssignmentCategories on a.Category equals ac.CategoryId
+                        join c in db.Classes on ac.InClass equals c.ClassId
+                        where c.ListingNavigation.Department == subject &&
+                              c.ListingNavigation.Number == courseNumber &&
+                              c.Season == season &&
+                              c.Year == classYear
+                        select new
+                        {
+                            aname = a.Name,
+                            cname = ac.Name,
+                            due = a.Due,
+                            submissions = a.Submissions
+                        };
+
+            return Json(query.ToArray());
         }
 
 
