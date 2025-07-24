@@ -400,7 +400,6 @@ namespace LMS_CustomIdentity.Controllers
         {
             uint courseNumber = (uint)num;
             uint classYear = (uint)year;
-            uint newScore = (uint)score;
 
             var assignmentQuery =
                 from a in db.Assignments
@@ -417,8 +416,16 @@ namespace LMS_CustomIdentity.Controllers
             var assignment = assignmentQuery.Include(a => a.CategoryNavigation).FirstOrDefault();
             if (assignment == null)
             {
-                return Json(new { success = false });
+                return Json(new { success = false, message = "Assignment not found" });
             }
+
+            // Validate score range based on assignment's MaxPoints
+            if (score < 0 || score > assignment.MaxPoints)
+            {
+                return Json(new { success = false, message = $"Score must be between 0 and {assignment.MaxPoints}" });
+            }
+
+            uint newScore = (uint)score;
 
             var submissionQuery =
                 from s in db.Submissions

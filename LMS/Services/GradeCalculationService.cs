@@ -30,6 +30,8 @@ namespace LMS.Services
             foreach (var cat in categories)
             {
                 var assignments = _db.Assignments.Where(a => a.Category == cat.CategoryId).ToList();
+                
+                // Skip categories with no assignments (per requirements)
                 if (assignments.Count == 0)
                     continue;
                     
@@ -49,7 +51,7 @@ namespace LMS.Services
             }
             
             if (totalWeights == 0)
-                return "-";
+                return "--";
                 
             double scaling = 100.0 / totalWeights;
             double finalPercent = totalWeighted * scaling;
@@ -67,7 +69,7 @@ namespace LMS.Services
                     
                 var grade = CalculateGrade(enrollment.Student, classId);
                 if (string.IsNullOrEmpty(grade))
-                    grade = "-";
+                    grade = "--";
                     
                 enrollment.Grade = grade.Length > 2 ? grade.Substring(0, 2) : grade;
                 _db.Enrolled.Attach(enrollment);
@@ -92,7 +94,7 @@ namespace LMS.Services
                 
             var grade = CalculateGrade(studentUid, classId);
             if (string.IsNullOrEmpty(grade))
-                grade = "-";
+                grade = "--";
                 
             enrollment.Grade = grade.Length > 2 ? grade.Substring(0, 2) : grade;
             _db.Enrolled.Attach(enrollment);

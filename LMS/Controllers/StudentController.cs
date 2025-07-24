@@ -90,7 +90,7 @@ namespace LMS.Controllers
                     year = e.ClassNavigation.Year,
                     grade = string.IsNullOrEmpty(e.Grade) ? "--" : e.Grade
                 })
-                .ToList();
+                .ToArray();
             return Json(classes);
         }
 
@@ -121,7 +121,7 @@ namespace LMS.Controllers
                     due = a.Due,
                     score = a.Submissions.Where(s => s.Student == uid).Select(s => (uint?)s.Score).FirstOrDefault()
                 })
-                .ToList();
+                .ToArray();
             return Json(assignments);
         }
 
@@ -213,7 +213,7 @@ namespace LMS.Controllers
             {
                 Student = uid,
                 Class = classObj.ClassId,
-                Grade = ""
+                Grade = null  // Will display as "--" when never calculated
             });
             db.SaveChanges();
             return Json(new { success = true });
