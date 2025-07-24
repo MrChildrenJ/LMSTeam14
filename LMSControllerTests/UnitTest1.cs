@@ -111,6 +111,327 @@ namespace LMSControllerTests
             Assert.Equal(1, professors.Length); // Should have 1 CS professor
         }
 
+        // ProfessorController Tests
+
+        [Fact]
+        public void GetStudentsInClass_ValidClass_ReturnsStudentsArray()
+        {
+            // Arrange
+            var db = MakeRichDB();
+            ProfessorController ctrl = new ProfessorController(db);
+            
+            // Act
+            var result = ctrl.GetStudentsInClass("CS", 5530, "Fall", 2023) as JsonResult;
+            
+            // Assert
+            Assert.NotNull(result);
+            var students = result.Value as Array;
+            Assert.NotNull(students);
+            Assert.Equal(2, students.Length); // Should have 2 enrolled students
+        }
+
+        [Fact]
+        public void CreateAssignmentCategory_NewCategory_ReturnsSuccess()
+        {
+            // Arrange
+            var db = MakeRichDB();
+            ProfessorController ctrl = new ProfessorController(db);
+            
+            // Act
+            var result = ctrl.CreateAssignmentCategory("CS", 5530, "Fall", 2023, "Projects", 40) as JsonResult;
+            
+            // Assert
+            Assert.NotNull(result);
+            var resultType = result.Value.GetType();
+            var successProperty = resultType.GetProperty("success");
+            Assert.NotNull(successProperty);
+            var successValue = (bool)successProperty.GetValue(result.Value);
+            Assert.True(successValue);
+        }
+
+        [Fact]
+        public void CreateAssignmentCategory_DuplicateCategory_ReturnsFalse()
+        {
+            // Arrange
+            var db = MakeRichDB();
+            ProfessorController ctrl = new ProfessorController(db);
+            
+            // Act - Try to create category that already exists
+            var result = ctrl.CreateAssignmentCategory("CS", 5530, "Fall", 2023, "Homework", 30) as JsonResult;
+            
+            // Assert
+            Assert.NotNull(result);
+            var resultType = result.Value.GetType();
+            var successProperty = resultType.GetProperty("success");
+            Assert.NotNull(successProperty);
+            var successValue = (bool)successProperty.GetValue(result.Value);
+            Assert.False(successValue);
+        }
+
+        [Fact]
+        public void CreateAssignment_ValidData_ReturnsSuccess()
+        {
+            // Arrange
+            var db = MakeRichDB();
+            ProfessorController ctrl = new ProfessorController(db);
+            
+            // Act
+            var result = ctrl.CreateAssignment("CS", 5530, "Fall", 2023, "Homework", "HW3", 100, 
+                DateTime.Now.AddDays(7), "Complete the database design") as JsonResult;
+            
+            // Assert
+            Assert.NotNull(result);
+            var resultType = result.Value.GetType();
+            var successProperty = resultType.GetProperty("success");
+            Assert.NotNull(successProperty);
+            var successValue = (bool)successProperty.GetValue(result.Value);
+            Assert.True(successValue);
+        }
+
+        [Fact]
+        public void CreateAssignment_DuplicateName_ReturnsFalse()
+        {
+            // Arrange
+            var db = MakeRichDB();
+            ProfessorController ctrl = new ProfessorController(db);
+            
+            // Act - Try to create assignment with existing name in same category
+            var result = ctrl.CreateAssignment("CS", 5530, "Fall", 2023, "Homework", "HW1", 100, 
+                DateTime.Now.AddDays(7), "Duplicate assignment") as JsonResult;
+            
+            // Assert
+            Assert.NotNull(result);
+            var resultType = result.Value.GetType();
+            var successProperty = resultType.GetProperty("success");
+            Assert.NotNull(successProperty);
+            var successValue = (bool)successProperty.GetValue(result.Value);
+            Assert.False(successValue);
+        }
+
+        [Fact]
+        public void GradeSubmission_ValidSubmission_ReturnsSuccess()
+        {
+            // Arrange
+            var db = MakeRichDB();
+            ProfessorController ctrl = new ProfessorController(db);
+            
+            // Act
+            var result = ctrl.GradeSubmission("CS", 5530, "Fall", 2023, "Homework", "HW1", "u0000001", 85) as JsonResult;
+            
+            // Assert
+            Assert.NotNull(result);
+            var resultType = result.Value.GetType();
+            var successProperty = resultType.GetProperty("success");
+            Assert.NotNull(successProperty);
+            var successValue = (bool)successProperty.GetValue(result.Value);
+            Assert.True(successValue);
+        }
+
+        [Fact]
+        public void GetAssignmentsInCategory_ValidCategory_ReturnsAssignments()
+        {
+            // Arrange
+            var db = MakeRichDB();
+            ProfessorController ctrl = new ProfessorController(db);
+            
+            // Act
+            var result = ctrl.GetAssignmentsInCategory("CS", 5530, "Fall", 2023, "Homework") as JsonResult;
+            
+            // Assert
+            Assert.NotNull(result);
+            var assignments = result.Value as Array;
+            Assert.NotNull(assignments);
+            Assert.Equal(2, assignments.Length); // Should have 2 homework assignments
+        }
+
+        [Fact]
+        public void GetAssignmentsInCategory_AllCategories_ReturnsAllAssignments()
+        {
+            // Arrange
+            var db = MakeRichDB();
+            ProfessorController ctrl = new ProfessorController(db);
+            
+            // Act - Pass null to get all assignments
+            var result = ctrl.GetAssignmentsInCategory("CS", 5530, "Fall", 2023, null) as JsonResult;
+            
+            // Assert
+            Assert.NotNull(result);
+            var assignments = result.Value as Array;
+            Assert.NotNull(assignments);
+            Assert.Equal(3, assignments.Length); // Should have all 3 assignments
+        }
+
+        [Fact]
+        public void GetAssignmentCategories_ValidClass_ReturnsCategories()
+        {
+            // Arrange
+            var db = MakeRichDB();
+            ProfessorController ctrl = new ProfessorController(db);
+            
+            // Act
+            var result = ctrl.GetAssignmentCategories("CS", 5530, "Fall", 2023) as JsonResult;
+            
+            // Assert
+            Assert.NotNull(result);
+            var categories = result.Value as Array;
+            Assert.NotNull(categories);
+            Assert.Equal(2, categories.Length); // Should have 2 categories
+        }
+
+        [Fact]
+        public void GetSubmissionsToAssignment_ValidAssignment_ReturnsSubmissions()
+        {
+            // Arrange
+            var db = MakeRichDB();
+            ProfessorController ctrl = new ProfessorController(db);
+            
+            // Act
+            var result = ctrl.GetSubmissionsToAssignment("CS", 5530, "Fall", 2023, "Homework", "HW1") as JsonResult;
+            
+            // Assert
+            Assert.NotNull(result);
+            var submissions = result.Value as Array;
+            Assert.NotNull(submissions);
+            Assert.Equal(2, submissions.Length); // Should have 2 submissions
+        }
+
+        [Fact]
+        public void GetMyClasses_ValidProfessor_ReturnsClasses()
+        {
+            // Arrange
+            var db = MakeRichDB();
+            ProfessorController ctrl = new ProfessorController(db);
+            
+            // Act
+            var result = ctrl.GetMyClasses("u1234567") as JsonResult;
+            
+            // Assert
+            Assert.NotNull(result);
+            var classes = result.Value as Array;
+            Assert.NotNull(classes);
+            Assert.Equal(1, classes.Length); // Should have 1 class
+        }
+
+
+        /// <summary>
+        /// Make a comprehensive in-memory database with classes, students, assignments, and submissions
+        /// for thorough testing of ProfessorController methods.
+        /// </summary>
+        /// <returns></returns>
+        LMSContext MakeRichDB()
+        {
+            var contextOptions = new DbContextOptionsBuilder<LMSContext>()
+                .UseInMemoryDatabase($"LMSRichTest_{Guid.NewGuid()}")
+                .ConfigureWarnings(b => b.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+                .UseApplicationServiceProvider(NewServiceProvider())
+                .EnableSensitiveDataLogging()
+                .Options;
+
+            var db = new LMSContext(contextOptions);
+            db.Database.EnsureDeleted();
+            db.Database.EnsureCreated();
+
+            // Add department
+            db.Departments.Add(new Department { Name = "KSoC", Subject = "CS" });
+
+            // Add courses
+            db.Courses.Add(new Course { CatalogId = 1, Name = "Database Systems", Number = 5530, Department = "CS" });
+            db.Courses.Add(new Course { CatalogId = 2, Name = "Software Engineering", Number = 3500, Department = "CS" });
+
+            // Add professor
+            db.Professors.Add(new Professor { UId = "u1234567", FName = "John", LName = "Doe", WorksIn = "CS", Dob = DateTime.Now.AddYears(-40) });
+
+            // Add students
+            db.Students.Add(new Student { UId = "u0000001", FName = "Alice", LName = "Smith", Major = "CS", Dob = DateTime.Now.AddYears(-20) });
+            db.Students.Add(new Student { UId = "u0000002", FName = "Bob", LName = "Jones", Major = "CS", Dob = DateTime.Now.AddYears(-21) });
+
+            // Add class
+            db.Classes.Add(new Class 
+            { 
+                ClassId = 1, 
+                Season = "Fall", 
+                Year = 2023, 
+                Location = "WEB 1460", 
+                StartTime = TimeOnly.Parse("10:45:00"), 
+                EndTime = TimeOnly.Parse("12:05:00"), 
+                Listing = 1, 
+                TaughtBy = "u1234567" 
+            });
+
+            // Add student enrollments
+            db.Enrolled.Add(new Enrolled { Student = "u0000001", Class = 1, Grade = "A-" });
+            db.Enrolled.Add(new Enrolled { Student = "u0000002", Class = 1, Grade = "B+" });
+
+            // Add assignment categories
+            db.AssignmentCategories.Add(new AssignmentCategory { CategoryId = 1, Name = "Homework", Weight = 30, InClass = 1 });
+            db.AssignmentCategories.Add(new AssignmentCategory { CategoryId = 2, Name = "Exams", Weight = 70, InClass = 1 });
+
+            // Add assignments
+            db.Assignments.Add(new Assignment 
+            { 
+                AssignmentId = 1, 
+                Name = "HW1", 
+                Category = 1, 
+                MaxPoints = 100, 
+                Contents = "First homework assignment", 
+                Due = DateTime.Now.AddDays(-7) 
+            });
+            db.Assignments.Add(new Assignment 
+            { 
+                AssignmentId = 2, 
+                Name = "HW2", 
+                Category = 1, 
+                MaxPoints = 100, 
+                Contents = "Second homework assignment", 
+                Due = DateTime.Now.AddDays(-3) 
+            });
+            db.Assignments.Add(new Assignment 
+            { 
+                AssignmentId = 3, 
+                Name = "Midterm", 
+                Category = 2, 
+                MaxPoints = 200, 
+                Contents = "Midterm exam", 
+                Due = DateTime.Now.AddDays(-1) 
+            });
+
+            // Add submissions
+            db.Submissions.Add(new Submission 
+            { 
+                Assignment = 1, 
+                Student = "u0000001", 
+                Time = DateTime.Now.AddDays(-6), 
+                Score = 90, 
+                SubmissionContents = "Alice's HW1 submission" 
+            });
+            db.Submissions.Add(new Submission 
+            { 
+                Assignment = 1, 
+                Student = "u0000002", 
+                Time = DateTime.Now.AddDays(-6), 
+                Score = 85, 
+                SubmissionContents = "Bob's HW1 submission" 
+            });
+            db.Submissions.Add(new Submission 
+            { 
+                Assignment = 2, 
+                Student = "u0000001", 
+                Time = DateTime.Now.AddDays(-2), 
+                Score = 95, 
+                SubmissionContents = "Alice's HW2 submission" 
+            });
+            db.Submissions.Add(new Submission 
+            { 
+                Assignment = 3, 
+                Student = "u0000001", 
+                Time = DateTime.Now.AddHours(-2), 
+                Score = 180, 
+                SubmissionContents = "Alice's Midterm submission" 
+            });
+
+            db.SaveChanges();
+            return db;
+        }
 
         ///// <summary>
         ///// Make a very tiny in-memory database, containing just one department

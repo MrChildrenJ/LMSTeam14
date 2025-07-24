@@ -1,6 +1,7 @@
 ﻿using LMS.Areas.Identity.Data;
 using LMS.Models;
 using LMS.Models.LMSModels;
+using LMS.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +28,9 @@ public class Program
         // Uncomment the below after scaffolding
         builder.Services.AddDbContext<LMSContext>( options =>
             options.UseMySql( builder.Configuration["LMS:LMSConnectionString"], ServerVersion.AutoDetect( builder.Configuration["LMS:LMSConnectionString"] ) ) );
+
+        // Register services
+        builder.Services.AddScoped<IGradeCalculationService, GradeCalculationService>();
 
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole();

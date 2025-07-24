@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using LMS.Models.LMSModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -188,7 +189,9 @@ namespace LMS.Controllers
         /// </returns>
         public IActionResult GetUser(string uid)
         {
-            var student = db.Students.FirstOrDefault(s => s.UId == uid);
+            var student = db.Students
+                .Include(s => s.MajorNavigation)
+                .FirstOrDefault(s => s.UId == uid);
             if (student != null)
             {
                 var deptName = student.MajorNavigation != null ? student.MajorNavigation.Name : "";
@@ -199,7 +202,9 @@ namespace LMS.Controllers
                     department = deptName
                 });
             }
-            var professor = db.Professors.FirstOrDefault(p => p.UId == uid);
+            var professor = db.Professors
+                .Include(p => p.WorksInNavigation)
+                .FirstOrDefault(p => p.UId == uid);
             if (professor != null)
             {
                 var deptName = professor.WorksInNavigation != null ? professor.WorksInNavigation.Name : "";
