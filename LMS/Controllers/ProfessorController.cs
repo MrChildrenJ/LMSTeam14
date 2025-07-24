@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LMS_CustomIdentity.Controllers
 {
-    [Authorize(Roles = "Professor")]
+     [Authorize(Roles = "Professor")]
     public class ProfessorController : Controller
     {
 
@@ -119,9 +119,8 @@ namespace LMS_CustomIdentity.Controllers
         {
             uint courseNumber = (uint)num;
             uint classYear = (uint)year;
-            
             var query = from cl in db.Classes
-                        join e in db.Enrolleds on cl.ClassId equals e.Class
+                        join e in db.Enrolled on cl.ClassId equals e.Class
                         join s in db.Students on e.Student equals s.UId
                         where cl.ListingNavigation.Department == subject &&
                               cl.ListingNavigation.Number == courseNumber &&
@@ -330,7 +329,8 @@ namespace LMS_CustomIdentity.Controllers
             
             db.Assignments.Add(newAssignment);
             db.SaveChanges();
-            
+            // Update grades for all students in this class
+            UpdateAllGradesForClass(assignmentCategory.InClass);
             return Json(new { success = true });
         }
 
@@ -398,7 +398,7 @@ namespace LMS_CustomIdentity.Controllers
             uint courseNumber = (uint)num;
             uint classYear = (uint)year;
             uint newScore = (uint)score;
-            
+
             var assignmentQuery =
                 from a in db.Assignments
                 join ac in db.AssignmentCategories on a.Category equals ac.CategoryId
@@ -410,28 +410,30 @@ namespace LMS_CustomIdentity.Controllers
                         ac.Name == category &&
                         a.Name == asgname
                 select a;
-            
+
             var assignment = assignmentQuery.FirstOrDefault();
             if (assignment == null)
             {
                 return Json(new { success = false });
             }
-            
+
             var submissionQuery =
                 from s in db.Submissions
                 where s.Assignment == assignment.AssignmentId &&
                         s.Student == uid
                 select s;
-            
+
             var submission = submissionQuery.FirstOrDefault();
             if (submission == null)
             {
                 return Json(new { success = false });
             }
-            
+
             submission.Score = newScore;
             db.SaveChanges();
-            
+            // Defensive null check for CategoryNavigation
+            if (assignment.CategoryNavigation != null)
+                UpdateAllGradesForClass(assignment.CategoryNavigation.InClass);
             return Json(new { success = true });
         }
 
@@ -463,7 +465,112 @@ namespace LMS_CustomIdentity.Controllers
             return Json(query.ToArray());
         }
         
+        private void UpdateAllGradesForClass(uint classId)
+{
+    var enrolledStudents = db.Enrolled.Where(e => e.Class == classId).ToList();
+    foreach (var enrollment in enrolledStudents)
+    {
+        if (enrollment == null)
+        {
+            Console.WriteLine($"Enrollment not found for class {classId}");
+            continue;
+        }
+        var grade = CalculateGrade(enrollment.Student, classId);
+        Console.WriteLine($"Calculated grade for student {enrollment.Student} in class {classId}: {grade}");
+        if (string.IsNullOrEmpty(grade))
+            grade = "-";
+        enrollment.Grade = grade.Length > 2 ? grade.Substring(0,2) : grade;
+        db.Enrolled.Attach(enrollment); // Force attach to ensure tracking
+        db.Entry(enrollment).Property(e => e.Grade).IsModified = true;
+        Console.WriteLine($"Set grade for student {enrollment.Student} in class {classId}: {enrollment.Grade}");
+    }
+    try
+    {
+        int affected = db.SaveChanges();
+        Console.WriteLine($"db.SaveChanges affected rows: {affected}");
+        foreach (var enrollment in enrolledStudents)
+        {
+            Console.WriteLine($"DB value for {enrollment.Student} in class {classId}: {enrollment.Grade}");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Exception during SaveChanges: {ex.Message}");
+    }
+}
+
+private string CalculateGrade(string studentUid, uint classId)
+{
+    var categories = db.AssignmentCategories.Where(ac => ac.InClass == classId).ToList();
+    if (categories.Count == 0)
+    {
+        Console.WriteLine($"No categories for class {classId}");
+        return "-";
+    }
+    double totalWeighted = 0;
+    double totalWeights = 0;
+    foreach (var cat in categories)
+    {
+        var assignments = db.Assignments.Where(a => a.Category == cat.CategoryId).ToList();
+        if (assignments.Count == 0)
+        {
+            Console.WriteLine($"No assignments for category {cat.Name} in class {classId}");
+            continue;
+        }
+        double earned = 0;
+        double max = 0;
+        foreach (var asg in assignments)
+        {
+            max += asg.MaxPoints;
+            var submission = db.Submissions.FirstOrDefault(s => s.Assignment == asg.AssignmentId && s.Student == studentUid);
+            earned += submission != null ? submission.Score : 0;
+        }
+        double percent = max > 0 ? earned / max : 0;
+        Console.WriteLine($"Category {cat.Name}: earned={earned}, max={max}, percent={percent}, weight={cat.Weight}");
+        totalWeighted += percent * cat.Weight;
+        totalWeights += cat.Weight;
+    }
+    if (totalWeights == 0)
+    {
+        Console.WriteLine($"Total weights is zero for class {classId}");
+        return "-";
+    }
+    double scaling = 100.0 / totalWeights;
+    double finalPercent = totalWeighted * scaling;
+    Console.WriteLine($"Final percent for {studentUid} in class {classId}: {finalPercent}");
+    // Letter grade conversion (example scale)
+    if (finalPercent >= 93) return "A";
+    if (finalPercent >= 90) return "A-";
+    if (finalPercent >= 87) return "B+";
+    if (finalPercent >= 83) return "B";
+    if (finalPercent >= 80) return "B-";
+    if (finalPercent >= 77) return "C+";
+    if (finalPercent >= 73) return "C";
+    if (finalPercent >= 70) return "C-";
+    if (finalPercent >= 67) return "D+";
+    if (finalPercent >= 63) return "D";
+    if (finalPercent >= 60) return "D-";
+    return "E";
+}
+
         /*******End code to modify********/
+
+        /// <summary>
+        /// Test action: manually set a student's grade for a class and save to DB.
+        /// Usage: /Professor/TestSetGrade?studentUid=U1234567&classId=1&grade=A
+        /// </summary>
+        [HttpPost]
+        public IActionResult TestSetGrade(string studentUid, uint classId, string grade)
+        {
+            var enrollment = db.Enrolled.FirstOrDefault(e => e.Student == studentUid && e.Class == classId);
+            if (enrollment == null)
+                return Json(new { success = false, message = "Enrollment not found" });
+            enrollment.Grade = grade;
+            db.Enrolled.Attach(enrollment);
+            db.Entry(enrollment).Property(e => e.Grade).IsModified = true;
+            db.SaveChanges();
+            return Json(new { success = true, grade = enrollment.Grade });
+        }
     }
 }
 

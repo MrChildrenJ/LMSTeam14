@@ -15,7 +15,7 @@ public partial class Student
 
     public string Major { get; set; } = null!;
 
-    public virtual ICollection<Enrolled> Enrolleds { get; set; } = new List<Enrolled>();
+    public virtual ICollection<Enrolled> Enrolled { get; set; } = new List<Enrolled>();
 
     public virtual Department MajorNavigation { get; set; } = null!;
 

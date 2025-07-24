@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LMS.Models.LMSModels;
 
+[Table("Enrolled")]
 public partial class Enrolled
 {
     public string Student { get; set; } = null!;

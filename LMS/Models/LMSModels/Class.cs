@@ -23,7 +23,7 @@ public partial class Class
 
     public virtual ICollection<AssignmentCategory> AssignmentCategories { get; set; } = new List<AssignmentCategory>();
 
-    public virtual ICollection<Enrolled> Enrolleds { get; set; } = new List<Enrolled>();
+    public virtual ICollection<Enrolled> Enrolled { get; set; } = new List<Enrolled>();
 
     public virtual Course ListingNavigation { get; set; } = null!;
 

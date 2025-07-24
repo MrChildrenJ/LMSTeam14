@@ -28,7 +28,7 @@ public partial class LMSContext : DbContext
 
     public virtual DbSet<Department> Departments { get; set; }
 
-    public virtual DbSet<Enrolled> Enrolleds { get; set; }
+    public virtual DbSet<Enrolled> Enrolled { get; set; }
 
     public virtual DbSet<Professor> Professors { get; set; }
 
@@ -193,12 +193,12 @@ public partial class LMSContext : DbContext
             entity.Property(e => e.Class).HasColumnType("int(10) unsigned");
             entity.Property(e => e.Grade).HasMaxLength(2);
 
-            entity.HasOne(d => d.ClassNavigation).WithMany(p => p.Enrolleds)
+            entity.HasOne(d => d.ClassNavigation).WithMany(p => p.Enrolled)
                 .HasForeignKey(d => d.Class)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Enrolled_ibfk_2");
 
-            entity.HasOne(d => d.StudentNavigation).WithMany(p => p.Enrolleds)
+            entity.HasOne(d => d.StudentNavigation).WithMany(p => p.Enrolled)
                 .HasForeignKey(d => d.Student)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Enrolled_ibfk_1");

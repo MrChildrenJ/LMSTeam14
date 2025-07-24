@@ -191,21 +191,23 @@ namespace LMS.Controllers
             var student = db.Students.FirstOrDefault(s => s.UId == uid);
             if (student != null)
             {
+                var deptName = student.MajorNavigation != null ? student.MajorNavigation.Name : "";
                 return Json(new {
                     fname = student.FName,
                     lname = student.LName,
                     uid = student.UId,
-                    department = student.MajorNavigation.Name
+                    department = deptName
                 });
             }
             var professor = db.Professors.FirstOrDefault(p => p.UId == uid);
             if (professor != null)
             {
+                var deptName = professor.WorksInNavigation != null ? professor.WorksInNavigation.Name : "";
                 return Json(new {
                     fname = professor.FName,
                     lname = professor.LName,
                     uid = professor.UId,
-                    department = professor.WorksInNavigation.Name
+                    department = deptName
                 });
             }
             var admin = db.Administrators.FirstOrDefault(a => a.UId == uid);
