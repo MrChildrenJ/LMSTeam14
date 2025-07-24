@@ -6,6 +6,7 @@ namespace LMS.Services
     {
         string CalculateGrade(string studentUid, uint classId);
         void UpdateAllGradesForClass(uint classId);
+        void UpdateGradeForStudent(string studentUid, uint classId);
     }
 
     public class GradeCalculationService : IGradeCalculationService
@@ -80,6 +81,30 @@ namespace LMS.Services
             catch (Exception ex)
             {
                 throw new InvalidOperationException("Failed to update grades for class", ex);
+            }
+        }
+
+        public void UpdateGradeForStudent(string studentUid, uint classId)
+        {
+            var enrollment = _db.Enrolled.FirstOrDefault(e => e.Student == studentUid && e.Class == classId);
+            if (enrollment == null)
+                return;
+                
+            var grade = CalculateGrade(studentUid, classId);
+            if (string.IsNullOrEmpty(grade))
+                grade = "-";
+                
+            enrollment.Grade = grade.Length > 2 ? grade.Substring(0, 2) : grade;
+            _db.Enrolled.Attach(enrollment);
+            _db.Entry(enrollment).Property(e => e.Grade).IsModified = true;
+            
+            try
+            {
+                _db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to update grade for student {studentUid}", ex);
             }
         }
 

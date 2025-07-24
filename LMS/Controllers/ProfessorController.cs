@@ -7,6 +7,7 @@ using LMS.Models.LMSModels;
 using LMS.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -412,8 +413,8 @@ namespace LMS_CustomIdentity.Controllers
                         ac.Name == category &&
                         a.Name == asgname
                 select a;
-
-            var assignment = assignmentQuery.FirstOrDefault();
+                
+            var assignment = assignmentQuery.Include(a => a.CategoryNavigation).FirstOrDefault();
             if (assignment == null)
             {
                 return Json(new { success = false });
@@ -433,9 +434,22 @@ namespace LMS_CustomIdentity.Controllers
 
             submission.Score = newScore;
             db.SaveChanges();
-            // Defensive null check for CategoryNavigation
+            
+            // Update grade for only this specific student
             if (assignment.CategoryNavigation != null)
-                _gradeCalculationService.UpdateAllGradesForClass(assignment.CategoryNavigation.InClass);
+            {
+                _gradeCalculationService.UpdateGradeForStudent(uid, assignment.CategoryNavigation.InClass);
+            }
+            else
+            {
+                // Fallback: find class ID through assignment category
+                var assignmentCategory = db.AssignmentCategories.FirstOrDefault(ac => ac.CategoryId == assignment.Category);
+                if (assignmentCategory != null)
+                {
+                    _gradeCalculationService.UpdateGradeForStudent(uid, assignmentCategory.InClass);
+                }
+            }
+            
             return Json(new { success = true });
         }
 

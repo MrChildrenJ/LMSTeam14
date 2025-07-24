@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LMS.Models.LMSModels;
+using LMS.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -14,9 +16,12 @@ namespace LMS.Controllers
     public class StudentController : Controller
     {
         private LMSContext db;
-        public StudentController(LMSContext _db)
+        private readonly IGradeCalculationService _gradeCalculationService;
+        
+        public StudentController(LMSContext _db, IGradeCalculationService gradeCalculationService)
         {
             db = _db;
+            _gradeCalculationService = gradeCalculationService;
         }
 
         public IActionResult Index()
@@ -140,13 +145,16 @@ namespace LMS.Controllers
         public IActionResult SubmitAssignmentText(string subject, int num, string season, int year,
           string category, string asgname, string uid, string contents)
         {
-            var assignment = db.Assignments.FirstOrDefault(a =>
-                a.Name == asgname &&
-                a.CategoryNavigation.Name == category &&
-                a.CategoryNavigation.InClassNavigation.ListingNavigation.DepartmentNavigation.Subject == subject &&
-                a.CategoryNavigation.InClassNavigation.ListingNavigation.Number == num &&
-                a.CategoryNavigation.InClassNavigation.Season == season &&
-                a.CategoryNavigation.InClassNavigation.Year == year);
+            var assignment = db.Assignments
+                .Include(a => a.CategoryNavigation)
+                .ThenInclude(ac => ac.InClassNavigation)
+                .FirstOrDefault(a =>
+                    a.Name == asgname &&
+                    a.CategoryNavigation.Name == category &&
+                    a.CategoryNavigation.InClassNavigation.ListingNavigation.DepartmentNavigation.Subject == subject &&
+                    a.CategoryNavigation.InClassNavigation.ListingNavigation.Number == num &&
+                    a.CategoryNavigation.InClassNavigation.Season == season &&
+                    a.CategoryNavigation.InClassNavigation.Year == year);
             if (assignment == null)
                 return Json(new { success = false });
 
@@ -169,6 +177,13 @@ namespace LMS.Controllers
                 // Score remains unchanged
             }
             db.SaveChanges();
+            
+            // Update the student's grade after submission
+            if (assignment.CategoryNavigation?.InClassNavigation != null)
+            {
+                _gradeCalculationService.UpdateGradeForStudent(uid, assignment.CategoryNavigation.InClass);
+            }
+            
             return Json(new { success = true });
         }
 
