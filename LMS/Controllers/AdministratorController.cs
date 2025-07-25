@@ -213,7 +213,6 @@ namespace LMS.Controllers
                 return Json(new { success = false });
             }
             
-            // Create the new class
             var newClass = new Class
             {
                 Season = season,

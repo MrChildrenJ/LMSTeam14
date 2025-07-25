@@ -236,13 +236,12 @@ namespace LMS_CustomIdentity.Controllers
             uint classYear = (uint)year;
             uint categoryWeight = (uint)catweight;
             
-            // Find the class using LINQ query style
             var classQuery = from c in db.Classes
-                           where c.ListingNavigation.Department == subject &&
-                                 c.ListingNavigation.Number == courseNumber &&
-                                 c.Season == season &&
-                                 c.Year == classYear
-                           select c;
+                            where c.ListingNavigation.Department == subject &&
+                                    c.ListingNavigation.Number == courseNumber &&
+                                    c.Season == season &&
+                                    c.Year == classYear
+                            select c;
             
             var classObj = classQuery.FirstOrDefault();
             if (classObj == null)
@@ -422,7 +421,6 @@ namespace LMS_CustomIdentity.Controllers
                 return Json(new { success = false, message = "Assignment not found" });
             }
 
-            // Validate score range based on assignment's MaxPoints
             if (score < 0 || score > assignment.MaxPoints)
             {
                 return Json(new { success = false, message = $"Score must be between 0 and {assignment.MaxPoints}" });
@@ -432,8 +430,7 @@ namespace LMS_CustomIdentity.Controllers
 
             var submissionQuery =
                 from s in db.Submissions
-                where s.Assignment == assignment.AssignmentId &&
-                        s.Student == uid
+                where s.Assignment == assignment.AssignmentId && s.Student == uid
                 select s;
 
             var submission = submissionQuery.FirstOrDefault();
@@ -445,14 +442,14 @@ namespace LMS_CustomIdentity.Controllers
             submission.Score = newScore;
             db.SaveChanges();
             
-            // Update grade for only this specific student
+
             if (assignment.CategoryNavigation != null)
             {
                 _gradeCalculationService.UpdateGradeForStudent(uid, assignment.CategoryNavigation.InClass);
             }
             else
             {
-                // Fallback: find class ID through assignment category
+                // find class ID through assignment category
                 var assignmentCategory = db.AssignmentCategories.FirstOrDefault(ac => ac.CategoryId == assignment.Category);
                 if (assignmentCategory != null)
                 {
