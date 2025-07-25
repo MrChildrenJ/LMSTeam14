@@ -15,6 +15,9 @@ namespace LMS.Controllers
     [Authorize(Roles = "Student")]
     public class StudentController : Controller
     {
+        // Sentinel value to indicate "not graded" submissions
+        private const uint NOT_GRADED_SENTINEL = uint.MaxValue;
+        
         private LMSContext db;
         private readonly IGradeCalculationService _gradeCalculationService;
         
@@ -119,7 +122,8 @@ namespace LMS.Controllers
                     aname = a.Name,
                     cname = a.CategoryNavigation.Name,
                     due = a.Due,
-                    score = a.Submissions.Where(s => s.Student == uid).Select(s => (uint?)s.Score).FirstOrDefault()
+                    score = a.Submissions.Where(s => s.Student == uid).Select(s => (uint?)s.Score).FirstOrDefault(),
+                    isGraded = a.Submissions.Where(s => s.Student == uid).Any(s => s.Score != NOT_GRADED_SENTINEL)
                 })
                 .ToArray();
             return Json(assignments);
@@ -167,7 +171,7 @@ namespace LMS.Controllers
                     Student = uid,
                     SubmissionContents = contents,
                     Time = DateTime.Now,
-                    Score = 0
+                    Score = NOT_GRADED_SENTINEL // Indicates "not graded yet"
                 });
             }
             else

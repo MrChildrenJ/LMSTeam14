@@ -65,7 +65,11 @@
 
         var td = document.createElement("td");
         if (item.score != null) {
-          td.appendChild(document.createTextNode(item.score));
+          if (item.isGraded) {
+            td.appendChild(document.createTextNode(item.score));
+          } else {
+            td.appendChild(document.createTextNode("Not Graded"));
+          }
         }
         else {
           td.appendChild(document.createTextNode("--"));

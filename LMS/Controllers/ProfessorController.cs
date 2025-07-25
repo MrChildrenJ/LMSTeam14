@@ -16,6 +16,9 @@ namespace LMS_CustomIdentity.Controllers
      [Authorize(Roles = "Professor")]
     public class ProfessorController : Controller
     {
+        // Sentinel value to indicate "not graded" submissions
+        private const uint NOT_GRADED_SENTINEL = uint.MaxValue;
+        
         private readonly LMSContext db;
         private readonly IGradeCalculationService _gradeCalculationService;
 

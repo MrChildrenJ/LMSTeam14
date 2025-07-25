@@ -11,6 +11,9 @@ namespace LMS.Services
 
     public class GradeCalculationService : IGradeCalculationService
     {
+        // Sentinel value to indicate "not graded" submissions
+        private const uint NOT_GRADED_SENTINEL = uint.MaxValue;
+        
         private readonly LMSContext _db;
 
         public GradeCalculationService(LMSContext db)
@@ -42,7 +45,23 @@ namespace LMS.Services
                 {
                     max += asg.MaxPoints;
                     var submission = _db.Submissions.FirstOrDefault(s => s.Assignment == asg.AssignmentId && s.Student == studentUid);
-                    earned += submission?.Score ?? 0;
+                    
+                    if (submission == null)
+                    {
+                        // No submission = 0 points (counts in calculation)
+                        earned += 0;
+                    }
+                    else if (submission.Score == NOT_GRADED_SENTINEL)
+                    {
+                        // Submitted but not graded = don't count (per professor's clarification)
+                        // Don't add to earned, don't subtract from max
+                        max -= asg.MaxPoints; // Remove this assignment from total possible points
+                    }
+                    else
+                    {
+                        // Graded submission = count actual score (including 0 if professor gave 0)
+                        earned += submission.Score;
+                    }
                 }
                 
                 double percent = max > 0 ? earned / max : 0;
